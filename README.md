@@ -1,7 +1,7 @@
 # PythonNetworkLogger
 Python firewall script that captures network traffic and writes logs to a file. It uses Scapy for packet sniffing and allows you to define simple filtering rules.
 
-Requirements:
+Software/OS Requirements:
 Ubuntu 24.04
 Scapy - pip install scapy
 
@@ -13,3 +13,7 @@ Logging: Writes timestamped logs to network_traffic.log with action (ALLOWED or 
 sudo python firewall.py
 This is a basic type of firewall logger — it monitors and logs but does not actively drop packets at the OS level.
 If you want actual packet blocking, you’d need to integrate with iptables (Linux) or netsh (Windows).
+
+
+Test setup Requirements:
+A VM with Ubuntu 24.04 and 2 network interfaces. The first interface connected to the local area network and the second to the intrenet/downstream/upstream. The Network Logger will log all traffic between these two segments.
