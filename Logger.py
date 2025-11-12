@@ -59,4 +59,5 @@ if __name__ == "__main__":
         # Sniff packets (requires root/admin privileges)
         sniff(prn=process_packet, store=False)
     except KeyboardInterrupt:
+
         print("\n[!] Stopping firewall.")
