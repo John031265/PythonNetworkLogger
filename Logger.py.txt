@@ -1,0 +1,62 @@
+import os
+import datetime
+from scapy.all import sniff, IP, TCP, UDP
+
+# Log file path
+LOG_FILE = "network_traffic.log"
+
+# Example firewall rules (block specific IPs or ports)
+BLOCKED_IPS = {"192.168.1.100", "10.0.0.5"}
+BLOCKED_PORTS = {23, 445}  # Telnet, SMB
+
+def log_packet(packet, action):
+    """Log packet details to a file with timestamp."""
+    try:
+        with open(LOG_FILE, "a") as f:
+            f.write(f"{datetime.datetime.now()} | {action} | {packet.summary()}\n")
+    except Exception as e:
+        print(f"Error writing to log: {e}")
+
+def packet_filter(packet):
+    """Decide whether to block or allow a packet."""
+    if IP in packet:
+        src_ip = packet[IP].src
+        dst_ip = packet[IP].dst
+        proto = packet[IP].proto
+
+        # Check for TCP/UDP ports if applicable
+        src_port = dst_port = None
+        if TCP in packet:
+            src_port = packet[TCP].sport
+            dst_port = packet[TCP].dport
+        elif UDP in packet:
+            src_port = packet[UDP].sport
+            dst_port = packet[UDP].dport
+
+        # Apply blocking rules
+        if src_ip in BLOCKED_IPS or dst_ip in BLOCKED_IPS:
+            log_packet(packet, "BLOCKED (IP)")
+            return False
+        if src_port in BLOCKED_PORTS or dst_port in BLOCKED_PORTS:
+            log_packet(packet, "BLOCKED (PORT)")
+            return False
+
+        # If not blocked, log as allowed
+        log_packet(packet, "ALLOWED")
+    return True
+
+def process_packet(packet):
+    """Process each sniffed packet."""
+    packet_filter(packet)
+
+if __name__ == "__main__":
+    # Ensure log file exists
+    if not os.path.exists(LOG_FILE):
+        open(LOG_FILE, "w").close()
+
+    print(f"[*] Starting firewall... Logging to {LOG_FILE}")
+    try:
+        # Sniff packets (requires root/admin privileges)
+        sniff(prn=process_packet, store=False)
+    except KeyboardInterrupt:
+        print("\n[!] Stopping firewall.")
